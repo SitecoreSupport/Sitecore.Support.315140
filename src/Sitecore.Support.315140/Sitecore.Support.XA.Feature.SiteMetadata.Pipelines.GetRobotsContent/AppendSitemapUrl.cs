@@ -9,7 +9,21 @@
     {
         protected override string GetSitemapUrl(Uri url, SiteInfo site)
         {
-            return new Uri(url.Scheme + Uri.SchemeDelimiter + url.Host).Append(site.VirtualFolder, "/sitemap.xml").ToString();
+            string scheme = string.IsNullOrWhiteSpace(site.Scheme) ? url.Scheme : site.Scheme;
+            var baseUri = $"{scheme}{Uri.SchemeDelimiter}{ResolveTargetHostName(site)}";
+            return new Uri(baseUri).Append(site.VirtualFolder, "/sitemap.xml").ToString();
+        }
+        protected virtual string ResolveTargetHostName(SiteInfo currentSite)
+        {
+            if (!string.IsNullOrEmpty(currentSite.TargetHostName))
+            {
+                return currentSite.TargetHostName;
+            }
+            if (currentSite.IsHostNameUnique())
+            {
+                return currentSite.HostName;
+            }
+            return HttpContext.Current.Request.Url.Host;
         }
     }
 }
